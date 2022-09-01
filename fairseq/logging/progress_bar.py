@@ -34,6 +34,7 @@ def progress_bar(
     aim_repo: Optional[str] = None,
     aim_run_hash: Optional[str] = None,
     aim_param_checkpoint_dir: Optional[str] = None,
+    aim_report_progress_interval: Optional[int] = 0,
     tensorboard_logdir: Optional[str] = None,
     default_log_format: str = "tqdm",
     wandb_project: Optional[str] = None,
@@ -66,6 +67,7 @@ def progress_bar(
             aim_repo=aim_repo,
             aim_run_hash=aim_run_hash,
             aim_param_checkpoint_dir=aim_param_checkpoint_dir,
+            aim_report_progress_interval=aim_report_progress_interval,
         )
 
     if tensorboard_logdir:
@@ -340,8 +342,9 @@ except ImportError:
 class AimProgressBarWrapper(BaseProgressBar):
     """Log to Aim."""
 
-    def __init__(self, wrapped_bar, aim_repo, aim_run_hash, aim_param_checkpoint_dir):
+    def __init__(self, wrapped_bar, aim_repo, aim_run_hash, aim_param_checkpoint_dir, aim_report_progress_interval):
         self.wrapped_bar = wrapped_bar
+        self._expect_next_in = aim_report_progress_interval
 
         if get_aim_run is None:
             self.run = None
@@ -371,6 +374,7 @@ class AimProgressBarWrapper(BaseProgressBar):
         """Log intermediate stats to Aim."""
         self._log_to_aim(stats, tag, step)
         self.wrapped_bar.log(stats, tag=tag, step=step)
+        self.run.report_progress(expect_next_in=self._expect_next_in)
 
     def print(self, stats, tag=None, step=None):
         """Print end-of-epoch stats."""

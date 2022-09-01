@@ -125,6 +125,13 @@ class CommonConfig(FairseqDataclass):
             "based on save_dir"
         },
     )
+    aim_report_progress_interval: Optional[int] = field(
+        default=0,
+        metadata={
+            "help": "Aim progress reporting interval: aim_run.report_progress(expect_next_in=aim_report_progress_interval)."
+            "based on save_dir"
+        },
+    )
     tensorboard_logdir: Optional[str] = field(
         default=None,
         metadata={
