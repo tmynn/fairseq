@@ -204,6 +204,19 @@ def main(cfg: FairseqConfig) -> None:
     train_meter.stop()
     logger.info("done training in {:.1f} seconds".format(train_meter.sum))
 
+    try:
+        from aim.sdk.reporter import RunStatusReporter
+        try:
+            RunStatusReporter.report_successful_finish()
+        except Exception:
+            logger.info("failed to finish aim.RunStatusReporter "
+                        "if you don't use aim logger please ignore this message"
+            )
+    except ImportError:
+        logger.info("failed to import aim.RunStatusReporter "
+                    "if you don't use aim logger please ignore this message"
+        )
+
     # ioPath implementation to wait for all asynchronous file writes to complete.
     if cfg.checkpoint.write_checkpoints_asynchronously:
         logger.info(
@@ -281,6 +294,7 @@ def train(
             else None
         ),
         aim_param_checkpoint_dir=cfg.checkpoint.save_dir,
+        aim_report_progress_interval=cfg.common.aim_report_progress_interval,
         tensorboard_logdir=(
             cfg.common.tensorboard_logdir
             if distributed_utils.is_master(cfg.distributed_training)
@@ -477,6 +491,7 @@ def validate(
                 else None
             ),
             aim_param_checkpoint_dir=cfg.checkpoint.save_dir,
+            aim_report_progress_interval=cfg.aim_report_progress_interval,
             tensorboard_logdir=(
                 cfg.common.tensorboard_logdir
                 if distributed_utils.is_master(cfg.distributed_training)
